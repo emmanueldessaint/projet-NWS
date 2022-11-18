@@ -20,21 +20,21 @@ jobs:
       - run: |
           npm install
           npm build
-  # build-docker:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Login to GitHub Container Registry
-  #       uses: docker/login-action@v2
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Build and push to GitHub registry
-  #       uses: docker/build-push-action@v3
-  #       with:
-  #         push: true
-  #         tags: ghcr.io/emmanueldessaint/nodejs:latest
-  #         target: nodejs
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push to GitHub registry
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: ghcr.io/emmanueldessaint/nodejs:latest
+          target: nodejs
   # test:
   #   runs-on: ubuntu-latest
   #   needs: [build]

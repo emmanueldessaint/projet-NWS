@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:18 AS nws-back
 
 RUN cd /tmp && \
     git clone https://github.com/emmanueldessaint/projet-octobre.git backend
