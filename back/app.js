@@ -1,9 +1,9 @@
 const express = require('express');
 const app = express();
+const axios = require('axios');
 const http = require('http');
 var bodyParser = require('body-parser')
 const mongoose = require('mongoose');
-const Student = require('./models/Student');
 const Materiel = require('./models/Materiel');
 const Emprunt = require('./models/Emprunt');
 var jsonParser = bodyParser.json();
@@ -33,10 +33,15 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/api/getAllStudents', function (req, res) {
-    Student.find()
-        .then(students => res.status(200).json(students))
-        .catch(error => res.status(400).json({ error }));
+app.use('/api/getStudents', function (req, res) {
+    axios.get('http://vps-a47222b1.vps.ovh.net:4242/Student')
+        // .then(response => {
+        //     console.log(response.data);
+        // })
+        .then(response => res.status(200).json(response.data))
+        .catch(error => {
+            console.log(error);
+        });
 })
 app.post('/api/addEtudiant', jsonParser, function (req, res) {
     console.log(req.body)
@@ -102,35 +107,6 @@ app.post('/api/addEmprunt', jsonParser, function (req, res) {
     });
     emprunt.save()
         .then(() => res.status(201).json({ message: 'Emprunt enregistré !' }))
-        .catch(error => res.status(400).json({ error }));
-    Materiel.findOne({ id: req.body.id_materiel })
-        .then(res2 => {
-            materielName = res2.nom
-            console.log(materielName)
-            db.collection('students').findOne({ id: req.body.id_etudiant })
-        .then(res => {
-            student = res;
-            console.log(materielName)
-
-            var nodeoutlook = require('nodejs-nodemailer-outlook')
-            nodeoutlook.sendEmail({
-                auth: {
-                    user: "mat_et_manu@hotmail.fr",
-                    pass: process.env.PASSWORD
-                },
-                from: 'mat_et_manu@hotmail.fr',
-                to: res.mail,
-                subject: 'Emprunt de matériel NWS',
-                html: `Bonjour ${res.prenom}, vous venez d'emprunter un(e) ${materielName} à la NWS le ${req.body.date_emprunt.charAt(8)}${req.body.date_emprunt.charAt(9)}/${req.body.date_emprunt.charAt(5)}${req.body.date_emprunt.charAt(6)}/${req.body.date_emprunt.charAt(0)}${req.body.date_emprunt.charAt(1)}${req.body.date_emprunt.charAt(2)}${req.body.date_emprunt.charAt(3)}. Vous devez rendre le matériel au plus tard le ${req.body.date_rendu.charAt(8)}${req.body.date_rendu.charAt(9)}/${req.body.date_rendu.charAt(5)}${req.body.date_rendu.charAt(6)}/${req.body.date_rendu.charAt(0)}${req.body.date_rendu.charAt(1)}${req.body.date_rendu.charAt(2)}${req.body.date_rendu.charAt(3)}.`,
-                text: 'This is text version!',
-                replyTo: res.mail,
-                onError: (e) => console.log(e),
-                onSuccess: (i) => console.log(i)
-            }
-            );
-        })
-        .catch(error => res.status(400).json({ error }));
-        })
         .catch(error => res.status(400).json({ error }));
 })
 

@@ -2,13 +2,12 @@ services:
   front:
     build: ./front
     ports:
-      - "49160:3000"
+      - "3006:3006"
     volumes:
       - "./front:/usr/src/app/front"
-
   back:
     build: ./back
     ports:
-      - "49161:8000"
+      - "8000:8000"
     volumes:
       - "./back:/usr/src/app/back"

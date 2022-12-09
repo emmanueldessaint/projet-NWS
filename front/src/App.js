@@ -20,22 +20,18 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import dateFormat from "dateformat";
 import CloseIcon from '@mui/icons-material/Close';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import AddIcon from '@mui/icons-material/Add';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import { v4 as uuidv4 } from 'uuid';
 
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-
 
 // require('dotenv').config();
-const API_BACKEND = 'http://vps-f0007953.vps.ovh.net:8000';
-// const API_BACKEND = 'http://localhost:8000';
+// const API_BACKEND = 'http://vps-f0007953.vps.ovh.net:8000';
+const API_BACKEND = 'http://localhost:8000';
 
 function Row(props) {
   let today = new Date();
-  const { materiel, emprunts, etudiants, setEmprunts, setMateriels, setEtudiants, materiels } = props;
+  const { materiel, emprunts, etudiants, setEmprunts, setMateriels, materiels } = props;
   const [open, setOpen] = React.useState(false);
   const [openPopUpCreateEmprunt, setOpenPopUpCreateEmprunt] = useState(false);
   const [newEmpruntStudent, setNewEmpruntStudent] = useState('');
@@ -57,38 +53,24 @@ function Row(props) {
       })
   }
 
-  const reminderEmprunt = (idEtudiant) => {
-
-    axios.post(`${API_BACKEND}/api/reminderEmprunt`, {
-      id_etudiant: idEtudiant,
-      id_materiel: currentIdMateriel,
-      date_emprunt: newEmpruntDateDebut,
-      date_rendu: newEmpruntDateRendu,
-    })
-      .then((res) => {
-        console.log(res)
-      }).catch((err) => {
-        console.log(err)
-      })
-  }
-
   const handleChange = (event) => {
     setSelectedEtudiant(event.target.value);
   };
 
   const findEmprunts = (id, emprunts, etudiants) => {
-    let filteredEmprunts = emprunts.filter(emprunt => emprunt.id_materiel === materiel.id).map((emprunt, subindex) => (
-      <TableRow key={subindex}>
-        <TableCell>{etudiants.find(etudiant => etudiant.id === emprunt.id_etudiant).prenom}</TableCell>
-        <TableCell>{etudiants.find(etudiant => etudiant.id === emprunt.id_etudiant).nom}</TableCell>
-        <TableCell>{etudiants.find(etudiant => etudiant.id === emprunt.id_etudiant).annee}</TableCell>
-        <TableCell>{dateFormat(emprunt.date_emprunt, "dd/mm/yyyy")}</TableCell>
-        <TableCell>{dateFormat(emprunt.date_rendu, "dd/mm/yyyy")}</TableCell>
-        <TableCell style={{ width: 20 }}><IconButton onClick={() => reminderEmprunt(emprunt.id_etudiant)}><NotificationsNoneIcon /></IconButton></TableCell>
-        <TableCell style={{ width: 20 }}><IconButton onClick={() => cancelEmprunt(emprunt.id)}><CloseIcon /></IconButton></TableCell>
-      </TableRow>
-    ))
-    return filteredEmprunts
+    let filteredEmprunts = emprunts.filter(emprunt => emprunt.id_materiel === materiel.id)
+    if (filteredEmprunts.length > 0) {
+      let newFilteredEmprunt = filteredEmprunts.map((emprunt, subindex) => (
+        <TableRow key={subindex}>
+          <TableCell>{etudiants.find(etudiant => etudiant.id == emprunt.id_etudiant).prenom}</TableCell>
+          <TableCell>{etudiants.find(etudiant => etudiant.id == emprunt.id_etudiant).nom}</TableCell>
+          <TableCell>{dateFormat(emprunt.date_emprunt, "dd/mm/yyyy")}</TableCell>
+          <TableCell>{dateFormat(emprunt.date_rendu, "dd/mm/yyyy")}</TableCell>
+          <TableCell style={{ width: 20 }}><IconButton onClick={() => cancelEmprunt(emprunt.id)}><CloseIcon /></IconButton></TableCell>
+        </TableRow>
+      ))
+      return newFilteredEmprunt
+    }
   }
 
   const setOpenPopUpCreateEmpruntFunction = (id) => {
@@ -157,18 +139,13 @@ function Row(props) {
         date_rendu: newEmpruntDateRendu,
       })
       setEmprunts(temporaryArray);
-
       setOpenPopUpCreateEmprunt(false);
       setSelectedEtudiant('');
       setNewEmpruntDateDebut(new Date(Date(today.getFullYear(), today.getMonth(), today.getDate())));
       setNewEmpruntDateRendu(new Date(Date(today.getFullYear(), today.getMonth(), today.getDate())));
-
-
     }).catch((err) => {
       console.log(err)
       setOpenPopUpCreateEmprunt(false);
-      // setNewMaterielName('');
-      // setNewMaterielStock(0);
     })
   }
 
@@ -214,16 +191,16 @@ function Row(props) {
                   <TableRow>
                     <TableCell style={{ fontWeight: 600 }}>Prénom</TableCell>
                     <TableCell style={{ fontWeight: 600 }}>Nom</TableCell>
-                    <TableCell style={{ fontWeight: 600 }}>Année</TableCell>
                     <TableCell style={{ fontWeight: 600 }}>Date d'emprunt</TableCell>
                     <TableCell style={{ fontWeight: 600 }}>Date de rendu</TableCell>
-                    <TableCell style={{ fontWeight: 600 }}>Rappel</TableCell>
                     <TableCell style={{ fontWeight: 600 }}>Supprimer l'emprunt</TableCell>
                   </TableRow>
                 </TableHead>
-                <TableBody>
-                  {findEmprunts(materiel.id, emprunts, etudiants)}
-                </TableBody>
+                {etudiants.length !== 0 &&
+                  <TableBody>
+                    {findEmprunts(materiel.id, emprunts, etudiants)}
+                  </TableBody>
+                }
               </Table>
             </Box>
           </Collapse>
@@ -248,7 +225,6 @@ function Row(props) {
             <MenuItem key={index} value={item.id}>
               <span style={{ marginRight: 5 }}>{item.prenom}</span>
               <span style={{ marginRight: 5 }}>{item.nom}</span>
-              <span>{item.annee}</span>
             </MenuItem>
           ))}
         </TextField>
@@ -282,21 +258,14 @@ function Row(props) {
 }
 
 export default function App() {
-  let today = new Date();
   const [popUpMateriel, setPopUpMateriel] = useState(false);
-  const [popUpEtudiant, setPopUpEtudiant] = useState(false);
   const [newMaterielName, setNewMaterielName] = useState('');
   const [newMaterielStock, setNewMaterielStock] = useState(0);
-  const [newEtudiantNom, setNewEtudiantNom] = useState('');
-  const [newEtudiantMail, setNewEtudiantMail] = useState('');
-  const [newEtudiantPrenom, setNewEtudiantPrenom] = useState('');
-  const [newEtudiantAnnee, setNewEtudiantAnnee] = useState('');
 
   const [materiels, setMateriels] = useState([]);
   const [etudiants, setEtudiants] = useState([]);
   const [emprunts, setEmprunts] = useState([]);
   const [value, setValue] = React.useState(1);
-  const [idEtudiantToDelete, setIdEtudiantToDelete] = useState(0);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -309,7 +278,7 @@ export default function App() {
     }).catch((err) => {
       console.log(err)
     })
-    axios.get(`${API_BACKEND}/api/getAllStudents`
+    axios.get(`${API_BACKEND}/api/getStudents`
     ).then((res) => {
       setEtudiants(res.data);
     }).catch((err) => {
@@ -354,55 +323,6 @@ export default function App() {
     })
   }
 
-  const addEtudiant = () => {
-    let uniqueId = uuidv4();
-    if (newEtudiantNom == '' || newEtudiantPrenom == '' || newEtudiantAnnee == '' || newEtudiantMail == '') {
-      return
-    }
-    axios.post(`${API_BACKEND}/api/addEtudiant`, {
-      id: uniqueId,
-      nom: newEtudiantNom,
-      mail: newEtudiantMail,
-      prenom: newEtudiantPrenom,
-      annee: newEtudiantAnnee,
-    }).then((res) => {
-      console.log(res)
-
-      let temporaryArray = [...etudiants];
-      temporaryArray.push({
-        id: uniqueId,
-        nom: newEtudiantNom,
-        mail: newEtudiantMail,
-        prenom: newEtudiantPrenom,
-        annee: newEtudiantAnnee,
-      })
-
-      setEtudiants(temporaryArray);
-      setNewEtudiantPrenom('');
-      setNewEtudiantNom('');
-      setNewEtudiantMail('');
-      setNewEtudiantAnnee('');
-      setPopUpEtudiant(false);
-    }).catch((err) => {
-      console.log(err)
-      setPopUpEtudiant(false);
-    })
-  }
-
-  const deleteEtudiant = () => {
-    axios.delete(`${API_BACKEND}/api/deleteEtudiant/${idEtudiantToDelete}`)
-      .then((res) => {
-        let temporaryArray = [...etudiants];
-        setEtudiants(temporaryArray.filter(item => item.id !== idEtudiantToDelete))
-        let temporaryArray2 = [...emprunts];
-        setEmprunts(temporaryArray2.filter(item => item.id_etudiant !== idEtudiantToDelete))
-        console.log(res)
-        // setIdEtudiantToDelete(0);
-      }).catch((err) => {
-        console.log(err)
-      })
-  }
-
   return (
     <Container>
       <TableContainer component={Paper}>
@@ -427,7 +347,6 @@ export default function App() {
                 emprunts={emprunts}
                 setEmprunts={setEmprunts}
                 etudiants={etudiants}
-                setEtudiants={setEtudiants}
               />
             ))}
           </TableBody>
@@ -435,9 +354,6 @@ export default function App() {
       </TableContainer>
       <Button style={{ margin: 10 }} onClick={() => setPopUpMateriel(true)} variant="contained" color="success">
         Ajouter du matériel
-      </Button>
-      <Button style={{ margin: 10 }} onClick={() => setPopUpEtudiant(true)} variant="contained" color="success">
-        Ajouter / supprimer un étudiant
       </Button>
       <Dialog open={popUpMateriel} onClose={() => setPopUpMateriel(false)}>
         <DialogTitle>Ajouter du matériel</DialogTitle>
@@ -457,81 +373,6 @@ export default function App() {
           type="number"
         />
         <Button variant="contained" style={{ borderRadius: 0, marginTop: 10 }} onClick={() => addMateriel()}>Valider</Button>
-      </Dialog>
-      <Dialog open={popUpEtudiant} onClose={() => setPopUpEtudiant(false)} fullWidth={true} maxWidth="xs">
-        {/* <DialogTitle>Ajouter un étudiant</DialogTitle> */}
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          aria-label="wrapped label tabs example"
-        >
-          <Tab
-            value={1}
-            label="Ajouter un étudiant"
-            wrapped
-          />
-          <Tab value={2} label="Supprimer un étudiant" />
-        </Tabs>
-        {value === 1 ?
-          <>
-            <TextField
-              style={{ margin: 10 }}
-              value={newEtudiantPrenom}
-              label="Prénom"
-              onChange={(e) => setNewEtudiantPrenom(e.target.value)}
-              variant='outlined'
-            />
-            <TextField
-              style={{ margin: 10 }}
-              value={newEtudiantNom}
-              label="Nom"
-              onChange={(e) => setNewEtudiantNom(e.target.value)}
-              variant='outlined'
-            />
-            <TextField
-              style={{ margin: 10 }}
-              value={newEtudiantMail}
-              label="Email"
-              onChange={(e) => setNewEtudiantMail(e.target.value)}
-              variant='outlined'
-            />
-            <TextField
-              style={{ margin: 10 }}
-              value={newEtudiantAnnee}
-              select
-              label="Année"
-              onChange={(e) => setNewEtudiantAnnee(e.target.value)}
-              variant='outlined'
-            >
-              <MenuItem value={'A1'}>A1</MenuItem>
-              <MenuItem value={'A2 CM'}>A2 Communtiy Management</MenuItem>
-              <MenuItem value={'A2 CG'}>A2 Communication Graphique</MenuItem>
-              <MenuItem value={'A2 EB'}>A2 E-Business</MenuItem>
-              <MenuItem value={'A2 DEV'}>A2 Développement</MenuItem>
-              <MenuItem value={'A3 CM'}>A3 Communtiy Management</MenuItem>
-              <MenuItem value={'A3 CG'}>A3 Communication Graphique</MenuItem>
-              <MenuItem value={'A3 EB'}>A3 E-Business</MenuItem>
-              <MenuItem value={'A3 DEV'}>A3 Développement</MenuItem>
-            </TextField>
-            <Button variant="contained" style={{ borderRadius: 0, marginTop: 10 }} onClick={() => addEtudiant()}>Valider</Button>
-          </> :
-          <>
-            <TextField
-              style={{ margin: 10 }}
-              value={idEtudiantToDelete}
-              select
-              label="étudiant à supprimer"
-              onChange={(e) => setIdEtudiantToDelete(e.target.value)}
-              variant='outlined'
-            >
-              <MenuItem disabled value={0}>Sélectionnez un étudiant</MenuItem>
-              {etudiants.map((etudiant) => (
-                <MenuItem key={etudiant.id} value={etudiant.id}>{etudiant.prenom} {etudiant.nom}</MenuItem>
-              ))}
-            </TextField>
-            <Button variant="contained" style={{ borderRadius: 0, marginTop: 10 }} onClick={() => deleteEtudiant()}>Valider</Button>
-          </>
-        }
       </Dialog>
     </Container>
   )

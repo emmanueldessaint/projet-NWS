@@ -25,9 +25,6 @@ test('boutons et affichage du tableau', () => {
   expect(
     screen.getByText("Ajouter du matériel")
   ).toBeInTheDocument();
-  expect(
-    screen.getByText("Ajouter / supprimer un étudiant")
-  ).toBeInTheDocument();
 });
 
 const request = require('supertest')('http://vps-f0007953.vps.ovh.net:8000/api');
